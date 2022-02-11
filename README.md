@@ -1,5 +1,7 @@
 # lf_eval_server
 
+Public example site at http://18.188.189.147:3000
+
 ## Creating a node
 
 Follow the quickstart EC2 wizard in the AWS console
