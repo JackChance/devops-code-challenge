@@ -1,0 +1,7 @@
+name: sample_site
+maintainer: JackChance
+license: cc0-1.0
+summary: Verify React/Express servers configured correctly
+version: 1.0.0
+supports:
+  - platform-family: linux
