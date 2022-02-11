@@ -1,59 +1,49 @@
-# Overview
-This repository contains a React frontend, and an Express backend that the frontend connects to.
+# lf_eval_server
 
-# Objective
-Deploy the frontend and backend to somewhere publicly accessible over the internet. The AWS Free Tier should be more than sufficient to run this project, but you may use any platform and tooling you'd like for your solution.
+## Creating a node
 
-Fork this repo as a base. You may change any code in this repository to suit the infrastructure you build in this code challenge.
+Follow the quickstart EC2 wizard in the AWS console
 
-# Submission
-1. A github repo that has been forked from this repo with all your code.
-2. Modify this README file with instructions for:
-* Any tools needed to deploy your infrastructure
-* All the steps needed to repeat your deployment process
-* URLs to the your deployed frontend.
+Ensure that the security group has port 3000 open either by editing the sg during the creation process or right clicking your instance, selecting security and adding it in.
 
-# Evaluation
-You will be evaluated on the ease to replicate your infrastructure. This is a combination of quality of the instructions, as well as any scripts to automate the overall setup process.
+Bootstrap the node with
+`sudo curl -L https://omnitruck.chef.io/install.sh | sudo bash`
 
-# Setup your environment
-Install nodejs. Binaries and installers can be found on nodejs.org.
-https://nodejs.org/en/download/
+## Applying this code
 
-For macOS or Linux, Nodejs can usually be found in your preferred package manager.
-https://nodejs.org/en/download/package-manager/
+Move the .tgz file, located under `lf_eval_server/packages`, to the target node. 
 
-Depending on the Linux distribution, the Node Package Manager `npm` may need to be installed separately.
+Unpack from your desired location with the command
+`tar -xvf {path to .tgz}`
 
-# Running the project
-The backend and the frontend will need to run on separate processes. The backend should be started first.
-```
-cd backend
-npm ci
-npm start
-```
-The backend should response to a GET request on `localhost:8080`.
+then execute
+`sudo chef-client -z` from the directory it was unpacked to. The first execution will require you to accept the Chef license by typing 'yes' on the next prompt.
 
-With the backend started, the frontend can be started.
-```
-cd frontend
-npm ci
-npm start
-```
-The frontend can be accessed at `localhost:3000`. If the frontend successfully connects to the backend, a message saying "SUCCESS" followed by a guid should be displayed on the screen.  If the connection failed, an error message will be displayed on the screen.
+## Integration testing
 
-# Configuration
-The frontend has a configuration file at `frontend/src/config.js` that defines the URL to call the backend. This URL is used on `frontend/src/App.js#12`, where the front end will make the GET call during the initial load of the page.
+`inspec_test/controls` lives in the same directory as the tgz file was unpacked, under `cookbook_artifacts/lf_eval_server-#{policy number}/inspec_test/controls}`
 
-The backend has a configuration file at `backend/config.js` that defines the host that the frontend will be calling from. This URL is used in the `Access-Control-Allow-Origin` CORS header, read in `backend/index.js#14`
+Run `/opt/chef/bin/inspec exec #{path to inspec_test/controls}` to execute the tests
 
-# Optional Extras
-The core requirement for this challenge is to get the provided application up and running for consumption over the public internet. That being said, there are some opportunities in this code challenge to demonstrate your skill sets that are above and beyond the core requirement.
+## Updating this code
 
-A few examples of extras for this coding challenge:
-1. Dockerizing the application
-2. Scripts to set up the infrastructure
-3. Providing a pipeline for the application deployment
-4. Running the application in a serverless environment
+Make changes as desired to the files within lf_eval_server
 
-This is not an exhaustive list of extra features that could be added to this code challenge. At the end of the day, this section is for you to demonstrate any skills you want to show that’s not captured in the core requirement.
+To generate the installation artifact run the following commands in the root level of this directory on a Chef workstation
+`chef update`
+`chef export -a ./Policyfile.rb ../packages`
+
+This will generate a policyfile tgz in `../packages` starting with the name lf-eval-server-.
+
+
+## Next steps
+
+To  improve the deploy experience the following should be done
+
+1. Generalize installation steps in an Custom Resource to handle backend and frontend with a single block of code and inputs.
+2. Wrap the bootstrap command in a Jenkins job
+3. Create a Terraform plan to handle the AWS server creation
+4. Store cannonical Policyfile artifact somewhere accessible to Jenkins server, such as Artifactory
+5. Wrap the move-untar-execute commands in Jenkins job
+6. Templatize the frontend/src/config.js and backend/config.js to accept variables for URL to allow multiple server configurations
+
